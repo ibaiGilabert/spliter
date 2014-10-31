@@ -10,6 +10,9 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <CkFileAccess.h>
+
+
 using namespace std;
 
 void usage() {
@@ -67,8 +70,11 @@ int main(int argc, char *argv[]) {
 	ifstream file(argv[1]);
 	if (file) {
 		while(getline(file, line)) {
+			//int cl = 0;
+			//cout << "line [" << l++ << "]: " << line;
 			istringstream bufer(line);
 			for (string token; getline(bufer, token, ' '); ) c++;
+			//cout << "\twords_line: " << cl << "\twords_total: " << c << endl;
 		}
 		file.close();
 	} else { fprintf(stderr, "couldn't open file: %s\n", argv[1]); exit(1); }
