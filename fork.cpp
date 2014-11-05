@@ -10,13 +10,13 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <CkFileAccess.h>
+//#include <CkFileAccess.h>
 
 
 using namespace std;
 
 void usage() {
-	fprintf(stderr, "Input param. required\n"); exit(1);
+	fprintf(stderr, "2 argument required: Metric and param.\n"); exit(1);
 }
 
 string exec(const char* cmd) {
@@ -62,38 +62,49 @@ string getJobID(string cmd) {
 	return v[2];
 }
 
+void counter_file(const char* filename) {
+    int c = 0;
+    string line;
+    ifstream file(filename);
+    if (file) {
+        while(getline(file, line)) {
+            //int cl = 0;
+            //cout << "line [" << l++ << "]: " << line;
+            istringstream bufer(line);
+            for (string token; getline(bufer, token, ' '); ) c++;
+            //cout << "\twords_line: " << cl << "\twords_total: " << c << endl;
+        }
+        file.close();
+    } else { fprintf(stderr, "couldn't open file: %s\n", filename); exit(1); }
+    printf("--> %s file has %d words\n", filename, c);
+}
+
 int main(int argc, char *argv[]) {
-	if (argc < 2) usage();
+	if (argc < 3) usage();
 
-	int c = 0;
-	string line;
-	ifstream file(argv[1]);
-	if (file) {
-		while(getline(file, line)) {
-			//int cl = 0;
-			//cout << "line [" << l++ << "]: " << line;
-			istringstream bufer(line);
-			for (string token; getline(bufer, token, ' '); ) c++;
-			//cout << "\twords_line: " << cl << "\twords_total: " << c << endl;
-		}
-		file.close();
-	} else { fprintf(stderr, "couldn't open file: %s\n", argv[1]); exit(1); }
+    printf("metric: %s\n", argv[1]);
+    printf("param: %s\n", argv[2]);
+    char qsub[] = "/usr/local/sge/bin/linux-x64/qsub ";
+   string cmd = string(qsub) + string(argv[1]) + " " + string(argv[2]);
 
-	printf("--> %s file has %d words\n", argv[1], c);
+    //strcat(cmd, argv[1]);
+    //strcat(cmd, argv[2]);
+    printf("[EXECUTE]: %s\n", cmd.c_str());
 
-/*	printf("[FATHER]: My ID: %d\n", (int)getpid());
+	printf("[FATHER]: My ID: %d\n", (int)getpid());
 	printf("[FATHER]: jobID: %s\n", exec("echo $JOB_ID").c_str());
-        printf("Let's invoque spliter\n");
 
-	string cmd1 = exec("/usr/local/sge/bin/linux-x64/qsub /home/usuaris/gilabert/spliter/countdown a");
-	string jobid1 = getJobID(cmd1);
-	printf("EXECUTED /jobID1: %s\n", jobid1.c_str());
+	//string cmd_r = exec("/usr/local/sge/bin/linux-x64/qsub /home/usuaris/gilabert/spliter/countdown a");
+	string cmd_r = exec(cmd.c_str());
+	string jobid_r = getJobID(cmd_r);
+	printf("EXECUTED /jobID_r: %s\n", jobid_r.c_str());
 
-        string cmd2 = exec(string("/usr/local/sge/bin/linux-x64/qsub -hold_jid "+ jobid1 +" /home/usuaris/gilabert/spliter/countdown a").c_str());
-        string jobid2 = getJobID(cmd2);
-        printf("EXECUTED /jobID2: %s (-hold_jid <%s>)\n", jobid2.c_str(), jobid1.c_str());
+    /*string cmd2 = exec(string("/usr/local/sge/bin/linux-x64/qsub -hold_jid "+ jobid1 +" /home/usuaris/gilabert/spliter/countdown a").c_str());
+    string jobid2 = getJobID(cmd2);
+    printf("EXECUTED /jobID2: %s (-hold_jid <%s>)\n", jobid2.c_str(), jobid1.c_str());
 
-	while (!end(jobid2)) {}
+	while (!end(jobid2)) {}    // Wait*/
 
-	cout << "DONE" << endl;
-*/}
+	printf("[DONE]\n");
+}
+
