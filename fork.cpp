@@ -8,12 +8,11 @@
 #include <string>
 #include <vector>
 
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
-//#include <CkFileAccess.h>
-
-
 using namespace std;
+
 
 void usage() {
 	fprintf(stderr, "2 argument required: Metric and param.\n"); exit(1);
@@ -82,28 +81,33 @@ void counter_file(const char* filename) {
 int main(int argc, char *argv[]) {
 	if (argc < 3) usage();
 
-    printf("metric: %s\n", argv[1]);
-    printf("param: %s\n", argv[2]);
-    char qsub[] = "/usr/local/sge/bin/linux-x64/qsub ";
-   string cmd = string(qsub) + string(argv[1]) + " " + string(argv[2]);
+	boost::filesystem::path c_path(boost::filesystem::current_path());
+        string metric = c_path.string() + "/" + argv[1];
 
-    //strcat(cmd, argv[1]);
-    //strcat(cmd, argv[2]);
-    printf("[EXECUTE]: %s\n", cmd.c_str());
+	//printf("[PATH]: %s\n", c_path.c_str());
+	printf("metric: %s\n", argv[1]);
+	printf("param: %s\n", argv[2]);
+	printf("qsub metric: %s\n", metric.c_str());
+
+	char qsub[] = "/usr/local/sge/bin/linux-x64/qsub -b y ";
+	char qsub_d[] = "/usr/local/sge/bin/linux-x64/qsub -b y -hold_jid ";
+	string cmd = string(qsub) + metric  + " " + argv[2];
+	printf("[EXECUTE]: %s\n", cmd.c_str());
 
 	printf("[FATHER]: My ID: %d\n", (int)getpid());
 	printf("[FATHER]: jobID: %s\n", exec("echo $JOB_ID").c_str());
 
-	//string cmd_r = exec("/usr/local/sge/bin/linux-x64/qsub /home/usuaris/gilabert/spliter/countdown a");
 	string cmd_r = exec(cmd.c_str());
 	string jobid_r = getJobID(cmd_r);
-	printf("EXECUTED /jobID_r: %s\n", jobid_r.c_str());
+	printf("[QUEUED] /jobID_r: %s\n", jobid_r.c_str());
 
-    /*string cmd2 = exec(string("/usr/local/sge/bin/linux-x64/qsub -hold_jid "+ jobid1 +" /home/usuaris/gilabert/spliter/countdown a").c_str());
-    string jobid2 = getJobID(cmd2);
-    printf("EXECUTED /jobID2: %s (-hold_jid <%s>)\n", jobid2.c_str(), jobid1.c_str());
+	string arg2 = string(argv[2]) + "_2";
+	string cmd2 = string(qsub_d) + jobid_r + " " + metric + " " + arg2;
+	string cmd2_r = exec(cmd2.c_str());
+	string jobid2_r = getJobID(cmd2_r);
+	printf("WAITING FOR /jobID2: %s (-hold_jid <%s>)\n", jobid2_r.c_str(), jobid_r.c_str());
 
-	while (!end(jobid2)) {}    // Wait*/
+	while(!end(jobid2_r)) {}	// Wait/
 
 	printf("[DONE]\n");
 }
